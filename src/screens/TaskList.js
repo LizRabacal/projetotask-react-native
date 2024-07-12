@@ -20,22 +20,51 @@ import { Ionicons } from "@expo/vector-icons";
 import AddTask from "./AddTask";
 import { Button } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { UserContext } from "../context/UserContext";
+import axios from "axios";
+import { server, showError, showSuccess } from "../Common";
 
 
 
 export default function TaskList() {
-  const { state, dispatch } = useContext(TasksContext);
-  const [tasks, setTasks] = useState(state);
+  const [tasks, setTasks] = useState([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [filter, setFilter] = useState("done");
+  const { dispatch } = useContext(UserContext);
+  const { state: estado } = useContext(UserContext);
+  const { user } = state;
+  const { headerAuth } = estado;
+
+
+
+
 
   useEffect(
     () => {
-      setTasks(state);
-      AsyncStorage.setItem("state", JSON.stringify(state));
+
+
+setTasks(fetchData())
+
+
     },
-    [state]
+    []
   );
+
+  const fetchData = async () =>{
+        try {
+      const res = await axios.get(`${server}/task`, {
+         headers: {
+      Authorization: headerAuth
+    }
+      });
+
+      return res.data;
+     
+    } catch (error) {
+      showError(error);
+      return [];
+    }
+  }
 
  
 

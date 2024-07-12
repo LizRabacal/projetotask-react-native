@@ -9,9 +9,20 @@ import moment from "moment";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { TasksContext } from "../context/TasksContext";
 import Icon from "react-native-vector-icons/FontAwesome";
+import axios from "axios";
+import { UserContext } from "../context/UserContext";
+import { server, showError, showSuccess } from "../Common";
+
+
+
+
+
+
 
 export default props => {
-  const { state, dispatch } = useContext(TasksContext);
+  const { state: estado } = useContext(UserContext);
+  const { headerAuth: estado } = state;
+
 
   const formatdate = date => {
     return moment(date).format("ddd, D [de] MMMM");
@@ -29,6 +40,33 @@ export default props => {
         {
           text: "Excluir",
           onPress: () => {
+
+
+    try {
+      const res = await axios.delete(`${server}/task/ ` + props.id, {
+  
+         headers: {
+      Authorization: headerAuth
+           }
+      });
+
+            showSuccess("Deletado com sucesso!");
+
+     
+    } catch (error) {
+      showError(error);
+      return null;
+    }
+
+
+
+
+
+
+
+
+
+
             dispatch({ type: "DELETE_TASK", payload: props.id });
           },
           style: "destructive"
@@ -50,7 +88,25 @@ export default props => {
   };
 
   const onPressDone = () => {
-    dispatch({ type: "SET_DONE", payload: props.id });
+    
+    try {
+      const res = await axios.put(`${server}/tasksToggle/ ` + props.id, {
+  
+         headers: {
+      Authorization: headerAuth
+           }
+      });
+
+     
+    } catch (error) {
+      showError(error);
+      return null;
+    }
+
+
+
+
+
   };
 
   const Done = () => {

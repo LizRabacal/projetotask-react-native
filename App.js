@@ -1,8 +1,9 @@
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import TaskList from "./src/screens/TaskList";
+import Navigator from "./src/Navigator";
 import TasksProvider from "./src/context/TasksContext";
+import UserProvider from "./src/context/UserProvider";
 import moment from "moment";
 
 
@@ -11,7 +12,11 @@ export default function App() {
 
   return (
     <TasksProvider>
-      <TaskList />
+    <UserProvider>
+
+      <Navigator />
+      
     </TasksProvider>
+    </UserProvider>
   );
 }

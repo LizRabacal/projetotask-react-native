@@ -16,23 +16,40 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import moment from "moment";
 import "moment/locale/pt-br";
 
-export default props => {
-  const [inputDate, setInputDate] = React.useState(null);
+import axios from "axios";
+import { UserContext } from "../context/UserContext";
+import { server, showError, showSuccess } from "../Common";
 
+export default props => {
+  const { state: estado } = useContext(UserContext);
+  const { headerAuth: estado } = state;
+  const [inputDate, setInputDate] = React.useState(null);
   const [desc, setDesc] = useState();
   const { state, dispatch } = useContext(TasksContext);
 
-  const handleSaveTask = () => {
+  const handleSaveTask = async () => {
+
     if (inputDate !== null && desc !== null) {
-      dispatch({
-        type: "ADD_TASK",
-        payload: {
-          id: Math.random(),
-          desc: desc,
-          estimateAt: inputDate,
-          doneAt: null
-        }
+
+    try {
+      const res = await axios.post(`${server}/task`, {
+        {
+            desc: desc,
+            estimatedAt: inputDate,
+        },
+         headers: {
+      Authorization: headerAuth
+           }
       });
+
+            showSuccess("Adicionado com sucesso!");
+
+     
+    } catch (error) {
+      showError(error);
+      return null;
+    }
+
       props.onCancel();
     }else{
     Alert.alert("PREENCHA TODOS OS CAMPOS");
