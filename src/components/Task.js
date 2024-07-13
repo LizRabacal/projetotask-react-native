@@ -13,22 +13,16 @@ import axios from "axios";
 import { UserContext } from "../context/UserContext";
 import { server, showError, showSuccess } from "../Common";
 
-
-
-
-
-
-
 export default props => {
   const { state: estado } = useContext(UserContext);
-  const { headerAuth: estado } = state;
-
+  const { headerAuth } = estado;
+  const { dispatch } = useContext(TasksContext);
 
   const formatdate = date => {
     return moment(date).format("ddd, D [de] MMMM");
   };
 
-  const handleRemoveTask = () => {
+  const handleRemoveTask = async () => {
     Alert.alert(
       "Confirmar Exclusão",
       "Você tem certeza que deseja excluir esta tarefa?",
@@ -39,35 +33,18 @@ export default props => {
         },
         {
           text: "Excluir",
-          onPress: () => {
-
-
-    try {
-      const res = await axios.delete(`${server}/task/ ` + props.id, {
-  
-         headers: {
-      Authorization: headerAuth
-           }
-      });
-
-            showSuccess("Deletado com sucesso!");
-
-     
-    } catch (error) {
-      showError(error);
-      return null;
-    }
-
-
-
-
-
-
-
-
-
-
-            dispatch({ type: "DELETE_TASK", payload: props.id });
+          onPress: async () => {
+            try {
+              await axios.delete(`${server}/task/${props.id}`, {
+                headers: {
+                  Authorization: headerAuth
+                }
+              });
+              showSuccess("Deletado com sucesso!");
+              dispatch({ type: "DELETE_TASK", payload: props.id });
+            } catch (error) {
+              showError(error);
+            }
           },
           style: "destructive"
         }
@@ -87,31 +64,26 @@ export default props => {
     );
   };
 
-  const onPressDone = () => {
-    
+  const onPressDone = async () => {
     try {
-      const res = await axios.put(`${server}/tasksToggle/ ` + props.id, {
-  
-         headers: {
-      Authorization: headerAuth
-           }
-      });
-
-     
+      await axios.put(
+        `${server}/tasksToggle/${props.id}`,
+        {},
+        {
+          headers: {
+            Authorization: headerAuth
+          }
+        }
+      );
+      // Dispatch an action to update the task status if necessary
     } catch (error) {
       showError(error);
-      return null;
     }
-
-
-
-
-
   };
 
   const Done = () => {
     return (
-      <TouchableOpacity onPress={() => onPressDone()}>
+      <TouchableOpacity onPress={onPressDone}>
         <View
           style={[
             styles.isdone,
@@ -127,19 +99,17 @@ export default props => {
   };
 
   const getRightContent = () => {
-    return(
-
-    <TouchableOpacity style={styles.left} onPress={() => handleRemoveTask()}>
+    return (
+      <TouchableOpacity style={styles.left} onPress={handleRemoveTask}>
         <Icon name="trash" style={styles.excludeIcon} color="white" size={30} />
         <Text style={styles.excludeText}>Excluir</Text>
-    </TouchableOpacity>
-
-
-    )
+      </TouchableOpacity>
+    );
   };
+
   const getLeftContent = () => {
     return (
-      <TouchableOpacity style={styles.right} onPress={() => handleRemoveTask()}>
+      <TouchableOpacity style={styles.right} onPress={handleRemoveTask}>
         <Icon name="trash" style={styles.excludeIcon} color="white" size={40} />
       </TouchableOpacity>
     );
@@ -204,15 +174,12 @@ const styles = StyleSheet.create({
     marginLeft: 13,
     marginTop: 5
   },
-
   done: {
     backgroundColor: "green",
     justifyContent: "center",
     alignItems: "center"
   },
-
   undone: {},
-
   right: {
     fontSize: 12,
     backgroundColor: "red",
@@ -228,11 +195,10 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   excludeText: {
-    color: "#Fff",
+    color: "#fff",
     fontSize: 20,
     margin: 10
   },
-
   excludeIcon: {
     margin: 10
   }

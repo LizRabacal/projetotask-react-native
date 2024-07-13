@@ -15,45 +15,40 @@ import { DatePickerInput } from "react-native-paper-dates";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import moment from "moment";
 import "moment/locale/pt-br";
-
 import axios from "axios";
 import { UserContext } from "../context/UserContext";
 import { server, showError, showSuccess } from "../Common";
 
 export default props => {
   const { state: estado } = useContext(UserContext);
-  const { headerAuth: estado } = state;
-  const [inputDate, setInputDate] = React.useState(null);
-  const [desc, setDesc] = useState();
+  const { headerAuth } = estado;
+  const [inputDate, setInputDate] = useState(null);
+  const [desc, setDesc] = useState("");
   const { state, dispatch } = useContext(TasksContext);
 
   const handleSaveTask = async () => {
-
-    if (inputDate !== null && desc !== null) {
-
-    try {
-      const res = await axios.post(`${server}/task`, {
-        {
+    if (inputDate && desc) {
+      try {
+        await axios.post(
+          `${server}/task`,
+          {
             desc: desc,
-            estimatedAt: inputDate,
-        },
-         headers: {
-      Authorization: headerAuth
-           }
-      });
+            estimatedAt: inputDate
+          },
+          {
+            headers: {
+              Authorization: headerAuth
+            }
+          }
+        );
 
-            showSuccess("Adicionado com sucesso!");
-
-     
-    } catch (error) {
-      showError(error);
-      return null;
-    }
-
-      props.onCancel();
-    }else{
-    Alert.alert("PREENCHA TODOS OS CAMPOS");
-
+        showSuccess("Adicionado com sucesso!");
+        props.onCancel();
+      } catch (error) {
+        showError(error);
+      }
+    } else {
+      Alert.alert("PREENCHA TODOS OS CAMPOS");
     }
   };
 
@@ -75,9 +70,8 @@ export default props => {
         <View style={styles.body}>
           <TextInput
             label="Descrição"
-            onChangeText={desc => setDesc(desc)}
+            onChangeText={setDesc}
             mode="outlined"
-            defaultProps
             activeUnderlineColor={"grey"}
             activeOutlineColor={CommonStyles.colors.today}
             selectionColor={CommonStyles.colors.today}
@@ -88,7 +82,7 @@ export default props => {
               label="Data estimada"
               mode="outlined"
               value={inputDate}
-              onChange={d => setInputDate(d)}
+              onChange={setInputDate}
               inputMode="end"
               activeUnderlineColor={"grey"}
               activeOutlineColor={CommonStyles.colors.today}
@@ -112,7 +106,7 @@ export default props => {
               mode="elevated"
               textColor={"white"}
               buttonColor={CommonStyles.colors.today}
-              onPress={() => handleSaveTask()}
+              onPress={handleSaveTask}
             >
               Salvar
             </Button>
@@ -135,7 +129,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-
     backgroundColor: "#fff"
   },
   title: {
@@ -144,7 +137,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontFamily: CommonStyles.fontFamily
   },
-
   header: {
     fontFamily: CommonStyles.fontFamily,
     color: CommonStyles.colors.secondary,
@@ -155,10 +147,8 @@ const styles = StyleSheet.create({
   body: {
     padding: 15
   },
-
   botoes: {
     flexDirection: "row",
-
     justifyContent: "flex-end",
     marginTop: 20
   }

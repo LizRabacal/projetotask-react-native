@@ -6,7 +6,7 @@ import axios from "axios";
 export const UserContext = createContext();
 
 const initialState = {
-    user: null
+    user: null,
     headerAuth: null
 };
 

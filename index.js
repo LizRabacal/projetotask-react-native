@@ -1,6 +1,5 @@
 import { registerRootComponent } from "expo";
 
-import App from "./App";
 import TaskList from "./src/screens/TaskList";
 import Auth from "./src/screens/Auth";
 import App from './App'

@@ -32,10 +32,17 @@ export default function TaskList() {
   const [filter, setFilter] = useState("done");
   const { dispatch } = useContext(UserContext);
   const { state: estado } = useContext(UserContext);
-  const { user } = state;
+  const { user } = estado;
   const { headerAuth } = estado;
 
-
+  useEffect(
+    () => {
+      if (!user) {
+        props.navigation.navigate("Auth");
+      }
+    },
+    [user]
+  );
 
 
 
