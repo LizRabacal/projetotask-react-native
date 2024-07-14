@@ -6,12 +6,13 @@ import {
   ImageBackground,
   FlatList,
   TouchableOpacity,
-  PlatForm
+  PlatForm,
+  Alert
 } from "react-native";
 import { TasksContext } from "../context/TasksContext";
 import todayImage from "../../assets/imgs/today.jpg";
 import moment from "moment";
-import CommonStyles from "../CommonStyles";
+import CommonStyles from "../CommonStyles"; 
 import "moment/locale/pt-br";
 import { List } from "react-native-paper";
 import Task from "../components/Task";
@@ -23,11 +24,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserContext } from "../context/UserContext";
 import axios from "axios";
 import { server, showError, showSuccess } from "../Common";
-
-
-
+import { Entypo } from '@expo/vector-icons';
 export default function TaskList() {
   const [tasks, setTasks] = useState([]);
+  const [shownTasks, setShownTasks] = useState([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [filter, setFilter] = useState("done");
   const { dispatch } = useContext(UserContext);
@@ -48,59 +48,146 @@ export default function TaskList() {
 
   useEffect(
     () => {
-
-
-setTasks(fetchData())
-
+    setShownTasks(tasks)
+        setFilter("all")
 
     },
-    []
+    [tasks]
   );
 
-  const fetchData = async () =>{
-        try {
-      const res = await axios.get(`${server}/task`, {
-         headers: {
-      Authorization: headerAuth
-    }
-      });
 
-      return res.data;
-     
+
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(`${server}/task`, {
+        headers: {
+          Authorization: headerAuth
+        }
+      });
+      setTasks(res.data);
     } catch (error) {
       showError(error);
       return [];
     }
-  }
+  };
+
+
+
+  useEffect(() => {
+    fetchData();
+    setFilter("all")
+
+  }, []);
 
  
 
   const toggleFilter = () => {
     if (filter == "done") {
-      setTasks(state.filter(s => s.doneAt !== null));
+      setShownTasks(tasks.filter(s => s.doneAt !== null));
       setFilter("undone");
     } else {
-      setTasks(state.filter(s => s.doneAt == null));
+      setShownTasks(tasks.filter(s => s.doneAt == null));
       setFilter("done");
     }
   };
+
+
+  //Marcar como feito
+  const onPressDone = async id => {
+    try {
+      await axios.put(
+        `${server}/tasksToggle/${id}`,
+        {},
+        { headers: { Authorization: headerAuth } }
+      );
+      setTasks(tasks.map(task => task.id === id ? { ...task, doneAt: task.doneAt === null ? new Date() : null } : task));
+    
+
+      
+    } catch (error) {
+      showError(error);
+    }
+  };
+
+
+
+  //DELETAR
+
+  const handleRemoveTask = async (id) => {
+    Alert.alert(
+      "Confirmar Exclusão",
+      "Você tem certeza que deseja excluir esta tarefa?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        {
+          text: "Excluir",
+          onPress: async () => {
+            try {
+              await axios.delete(`${server}/task/${id}`, {
+                headers: {
+                  Authorization: headerAuth 
+                }
+              });
+
+              setTasks(tasks.filter(task => task.id !== id));
+
+              showSuccess("Deletado com sucesso!");
+            } catch (error) {
+              showError(error);
+            }
+          },
+          style: "destructive"
+        }
+      ]
+    );
+  };
+
+  const allTasks = () =>{
+    setFilter("all")
+    setShownTasks(tasks);
+  }
+
+
+
 
   const today = moment().locale("pt-br").format("ddd, D [de] MMMM");
 
   return (
     <View style={styles.container}>
       <AddTask isVisible={showAddTask} onCancel={() => setShowAddTask(false)} />
+
       <ImageBackground style={styles.background} source={todayImage}>
-        <View style={styles.iconBar} />
-        <TouchableOpacity onPress={() => toggleFilter()}>
+
+
+        <View style={styles.iconBar} >
+           <TouchableOpacity style={{marginBottom:10}} onPress={() => toggleFilter()}>
           {filter == "done"
-            ? <Ionicons
+            ? 
+            (<>
+            <Ionicons
                 name="checkmark-done-circle-outline"
                 size={40}
                 color="white"
-              />
-            : <Ionicons name="checkmark-done-circle" size={40} color="white" />}
+              /><Text style={styles.t}>Ver tarefas feitas</Text></>)
+            : 
+            (<>
+            <Ionicons name="checkmark-done-circle" size={40} color="white" /><Text style={styles.t}>Ver tarefas não Feitas</Text></>)
+            } 
+
+
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => dispatch({type: "LOGOUT"})} style={{position: "relative", left: 160}}>
+                  <Entypo name="log-out" size={34} color="white" />
+        </TouchableOpacity>
+
+         
+
+
+        </View>
 
         <View style={styles.titleBar}>
           <Text style={styles.title}>Hoje:</Text>
@@ -111,15 +198,21 @@ setTasks(fetchData())
       </ImageBackground>
       <View style={styles.taskList}>
         <List.Section>
-          <List.Subheader>Lista de tarefas</List.Subheader>
+          <List.Subheader style={{alignItems: "center", justifyContent: "center"}}>
+            {filter == "done" ? <Text>Tarefas feitas</Text> : filter== "undone" ? <Text>Tarefas não feitas</Text> : <Text>Lista de tarefas</Text>}
+            {(filter == "done" || filter=="undone") && (
+                <TouchableOpacity style={{marginBottom:0}} onPress={() => allTasks()}>
+          <Text style={{marginLeft: 10, position: "absolute", bottom: -2, color: "red"}}>Ver todas</Text>
+        </TouchableOpacity>
+            )}
+
+          </List.Subheader>
 
           <FlatList
-            data={tasks}
-            keyExtractor={item =>
-              `${item.id 
-              }`}
+            data={shownTasks}
+            keyExtractor={item => `${item.id}`}
             renderItem={({ item }) =>
-              <Task {...item} toggleFilter={toggleFilter} />}
+              <Task {...item} toggleFilter={toggleFilter} handleRemoveTask={handleRemoveTask} onPressDone={onPressDone} />}
           />
         </List.Section>
       </View>
@@ -152,9 +245,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: CommonStyles.fontFamily,
-    fontSize: 50,
+    fontSize: 40,
     color: CommonStyles.colors.secondary,
-    marginLeft: 20
+    marginLeft: 20,
   },
   today: {
     fontFamily: CommonStyles.fontFamily,
@@ -163,8 +256,8 @@ const styles = StyleSheet.create({
     marginLeft: 20
   },
   iconBar: {
-    marginTop: 50,
-    flexDirection: "row"
+    marginBottom: 20,
+    flexDirection: 'row',
   },
   addButton: {
     position: "absolute",
@@ -176,5 +269,11 @@ const styles = StyleSheet.create({
     backgroundColor: CommonStyles.colors.today,
     justifyContent: "center",
     alignItems: "center"
+  },
+  t:{
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginRight: 10,
+    color: 'white'
   }
 });

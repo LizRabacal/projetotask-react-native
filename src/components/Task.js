@@ -18,39 +18,13 @@ export default props => {
   const { headerAuth } = estado;
   const { dispatch } = useContext(TasksContext);
 
+
+  
   const formatdate = date => {
     return moment(date).format("ddd, D [de] MMMM");
   };
 
-  const handleRemoveTask = async () => {
-    Alert.alert(
-      "Confirmar Exclusão",
-      "Você tem certeza que deseja excluir esta tarefa?",
-      [
-        {
-          text: "Cancelar",
-          style: "cancel"
-        },
-        {
-          text: "Excluir",
-          onPress: async () => {
-            try {
-              await axios.delete(`${server}/task/${props.id}`, {
-                headers: {
-                  Authorization: headerAuth
-                }
-              });
-              showSuccess("Deletado com sucesso!");
-              dispatch({ type: "DELETE_TASK", payload: props.id });
-            } catch (error) {
-              showError(error);
-            }
-          },
-          style: "destructive"
-        }
-      ]
-    );
-  };
+  
 
   const Title = () => {
     return (
@@ -64,26 +38,13 @@ export default props => {
     );
   };
 
-  const onPressDone = async () => {
-    try {
-      await axios.put(
-        `${server}/tasksToggle/${props.id}`,
-        {},
-        {
-          headers: {
-            Authorization: headerAuth
-          }
-        }
-      );
-      // Dispatch an action to update the task status if necessary
-    } catch (error) {
-      showError(error);
-    }
-  };
+
+
+ 
 
   const Done = () => {
     return (
-      <TouchableOpacity onPress={onPressDone}>
+      <TouchableOpacity onPress={()=>props.onPressDone(props.id)}>
         <View
           style={[
             styles.isdone,
@@ -100,7 +61,7 @@ export default props => {
 
   const getRightContent = () => {
     return (
-      <TouchableOpacity style={styles.left} onPress={handleRemoveTask}>
+      <TouchableOpacity style={styles.left} onPress={()=>props.handleRemoveTask(props.id)}>
         <Icon name="trash" style={styles.excludeIcon} color="white" size={30} />
         <Text style={styles.excludeText}>Excluir</Text>
       </TouchableOpacity>
@@ -108,11 +69,9 @@ export default props => {
   };
 
   const getLeftContent = () => {
-    return (
-      <TouchableOpacity style={styles.right} onPress={handleRemoveTask}>
+    return <TouchableOpacity style={styles.right} onPress={()=>props.handleRemoveTask(props.id)}>
         <Icon name="trash" style={styles.excludeIcon} color="white" size={40} />
-      </TouchableOpacity>
-    );
+      </TouchableOpacity>;
   };
 
   return (
@@ -141,7 +100,7 @@ export default props => {
               title={formatdate(props.estimateAt)}
               description="Data estimada"
               left={props =>
-                <List.Icon {...props} icon="calendar" color="#AAA" />}
+                <List.Icon {...props} icon="calendar" size={60} color="#AAA" />}
             />
             <List.Item
               style={{ color: CommonStyles.colors.subText }}

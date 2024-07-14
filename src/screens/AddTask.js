@@ -22,21 +22,22 @@ import { server, showError, showSuccess } from "../Common";
 export default props => {
   const { state: estado } = useContext(UserContext);
   const { headerAuth } = estado;
+  const { user } = estado;
   const [inputDate, setInputDate] = useState(null);
   const [desc, setDesc] = useState("");
-  const { state, dispatch } = useContext(TasksContext);
 
   const handleSaveTask = async () => {
+    console.log( headerAuth );
     if (inputDate && desc) {
       try {
         await axios.post(
           `${server}/task`,
           {
             desc: desc,
-            estimatedAt: inputDate
+            estimateAt: inputDate,
           },
           {
-            headers: {
+            headers: { 
               Authorization: headerAuth
             }
           }
@@ -65,8 +66,11 @@ export default props => {
 
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Criar nova tarefa</Text>
+          <Text style={styles.title}>
+            Criar nova tarefa
+          </Text>
         </View>
+
         <View style={styles.body}>
           <TextInput
             label="Descrição"
@@ -102,16 +106,20 @@ export default props => {
                 Cancelar
               </Button>
             </TouchableOpacity>
-            <Button
-              mode="elevated"
-              textColor={"white"}
-              buttonColor={CommonStyles.colors.today}
-              onPress={handleSaveTask}
-            >
-              Salvar
-            </Button>
-            <TouchableOpacity />
+
+            <TouchableOpacity>
+              <Button
+                mode="elevated"
+                textColor={"white"}
+                buttonColor={CommonStyles.colors.today}
+                onPress={handleSaveTask}
+              >
+                Salvar
+              </Button>
+            </TouchableOpacity>
           </View>
+
+          
         </View>
       </View>
 
@@ -128,8 +136,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.7)"
   },
   container: {
-    flex: 1,
-    backgroundColor: "#fff"
+    backgroundColor: "white",
+    justifyContent: "space-between"
   },
   title: {
     fontSize: 15,
@@ -150,6 +158,6 @@ const styles = StyleSheet.create({
   botoes: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 20
+    marginTop: 10
   }
 });

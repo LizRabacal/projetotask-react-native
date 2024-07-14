@@ -16,8 +16,7 @@ import { server, showError, showSuccess } from "../Common";
 import { UserContext } from "../context/UserContext";
 
 export default props => {
-  const { dispatch } = useContext(UserContext);
-  const { state } = useContext(UserContext);
+  const { state, dispatch } = useContext(UserContext);
   const { user } = state;
 
   const [email, setEmail] = useState("");
@@ -39,6 +38,7 @@ export default props => {
       showError(error);
     }
   };
+
   const signin = async () => {
     if (!user) {
       try {
@@ -49,20 +49,21 @@ export default props => {
         axios.defaults.headers.common["Authorization"] = `bearer ${res.data
           .token}`;
         showSuccess("Usuário Logado: " + res.data.token);
+        const userData = {
+          name: res.data.name,
+          email: res.data.email,
+          id: res.data.id,
+          token: res.data.token
+        };
         dispatch({
           type: "SET_USER",
-          pyaload: {
-            name: res.data.name,
-            email: res.data.email,
-            id: res.data.id,
-            token: res.data.token
-          }
+          payload: userData
         });
       } catch (error) {
         showError(error);
       }
     } else {
-      showError("Você já está logadooo!");
+      showError("Você já está logado!");
     }
   };
 
@@ -82,7 +83,6 @@ export default props => {
             onChangeText={name => setName(name)}
             value={name}
             mode="flat"
-            defaultProps
             activeUnderlineColor={"grey"}
             activeOutlineColor={"black"}
             selectionColor={"black"}
@@ -93,7 +93,6 @@ export default props => {
           onChangeText={email => setEmail(email.toLowerCase())}
           value={email}
           mode="flat"
-          defaultProps
           activeUnderlineColor={"grey"}
           activeOutlineColor={"black"}
           selectionColor={"black"}
@@ -104,7 +103,6 @@ export default props => {
           value={password}
           onChangeText={password => setPassword(password)}
           mode="flat"
-          defaultProps
           secureTextEntry={true}
           activeUnderlineColor={"grey"}
           activeOutlineColor={"black"}
@@ -120,18 +118,15 @@ export default props => {
             onChangeText={confirmPassword =>
               setConfirmPassword(confirmPassword)}
             mode="flat"
-            defaultProps
-            secureTextEntry={true}
             secureTextEntry={true}
             activeUnderlineColor={"grey"}
             activeOutlineColor={"black"}
             selectionColor={"black"}
           />}
 
-        <TouchableOpacity onPress={stageNew ? () => signup() : () => signIn()}>
+        <TouchableOpacity onPress={stageNew ? signup : signin}>
           <Button
             mode="elevated"
-            onPress={props.onCancel}
             style={{ marginTop: 10 }}
             textColor={"white"}
             buttonColor="#080"
@@ -173,7 +168,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: "center"
   },
-
   formContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.7)",
     justifyContent: "center",
